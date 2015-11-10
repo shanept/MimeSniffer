@@ -174,7 +174,7 @@
 				);
 			}
 			if ( is_null( self::$fonts ) ) {
-				$fonts		= self::$fonts;
+				$fonts		= &self::$fonts;
 				$fonts		= array();
 
 				// 34 bytes followed by "LP" - Opentype signature
