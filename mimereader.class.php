@@ -13,6 +13,7 @@
 	 *  - get_type:	Gets the determined MIME type,
 	 *				returns application/octet-stream
 	 *				if the MIME type is unknown.
+	 *  - is_empty: Whether or not the file is empty
 	 *  - is_text:	Whether or not the file is plain
 	 *				text (UTF-8 or not)
 	 *  - is_font:  Whether the file is a font file
@@ -443,6 +444,12 @@
 		}
 
 		/* The public API */
+		public function is_empty() {
+			if ( 'inode/x-empty' === $this->detected_type ) return true;
+
+			return false;
+		}
+
 		public function is_text() {
 			if ( 'application/postscript'	=== $this->detected_type ) return true;
 			if ( 'text/plain'				=== $this->detected_type ) return true;
@@ -596,6 +603,7 @@
 		}
 
 		protected function detect_type() {
+			if ( $this->sniff_empty() )   return;
 			if ( $this->sniff_images() )  return;
 			if ( $this->sniff_media() )   return;
 			if ( $this->sniff_fonts() )   return;
@@ -606,6 +614,15 @@
 		}
 
 		/* Sniffer functions */
+		protected function sniff_empty() {
+			if (strlen($this->header) === 0) {
+				$this->detected_type    = 'inode/x-empty';
+				return true;
+			}
+
+			return false;
+		}
+
 		protected function sniff_images() {
 			$num_imgs	= count( self::$image );
 			for ( $i = 0; $i < $num_imgs; $i++ ) {

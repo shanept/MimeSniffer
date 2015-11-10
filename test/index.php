@@ -3,7 +3,7 @@
 
 	$files	= array (
 		'./image.jpg', './image.png', './image.gif',
-		'./image.bmp', './Test.pdf'
+		'./image.bmp', './Test.pdf', './empty.txt'
 	);
 
 	echo '<table>';
