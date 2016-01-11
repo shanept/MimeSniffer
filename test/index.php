@@ -1,5 +1,7 @@
 <?php
-	include( '../mimereader.class.php' );
+	chdir(__DIR__);
+
+	require '../src/MimeReader.php';
 
 	$files	= array (
 		'./image.jpg', './image.png', './image.gif',
