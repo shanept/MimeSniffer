@@ -1,0 +1,17 @@
+{
+    "name": "shanept/mime-sniffer",
+    "description": "Sniffs the MIME type of many common types of files.",
+    "require-dev": {
+        "phpunit/phpunit": "<=4"
+    },
+    "license": "Public Domain",
+    "authors": [
+        {
+            "name": "Shane Thompson",
+            "email": "shanept@iinet.net.au"
+        }
+    ],
+    "autoload": {
+        "Shanept\\": "src/"
+    }
+}
