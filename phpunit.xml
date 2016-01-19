@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit bootstrap="test/bootstrap.php"
+        color="true"
+        convertErrorsToExceptions="true"
+        convertWarningsToExceptions="true"
+        convertNoticesToExceptions="true"
+        stopOnFailures="false"
+        syntaxCheck="false">
+    <testsuites>
+        <testsuite name="HTTP">
+            <directory>test/</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
