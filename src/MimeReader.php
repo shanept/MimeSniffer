@@ -1,29 +1,6 @@
 <?php
-    /****************************************************
-     * The following MIME sniffing class is based
-     * on the specification published at the following
-     * URL: http://mimesniff.spec.whatwg.org/
-     *
-     * To use this class, just pass the filename or
-     * a file resource to the construct - the class
-     * will then examine the file and find the MIME
-     * type.
-     *
-     * The Public API:
-     *  - get_type: Gets the determined MIME type,
-     *                returns application/octet-stream
-     *                if the MIME type is unknown.
-     *  - is_empty: Whether or not the file is empty
-     *  - is_text:  Whether or not the file is plain
-     *                text (UTF-8 or not)
-     *  - is_font:  Whether the file is a font file
-     *  - is_zip:   Whether the file is zipped
-     *  - is_archive: Whether the file is an archive
-     *  - is_scriptable:
-     *                Determines whether the selected
-     *              MIME type may contain executable
-     *              scripts
-     ***************************************************/
+    namespace Shanept;
+
     class MimeReader {
         protected $file = null;
         protected $detected_type = null;
@@ -102,63 +79,63 @@
 
         protected static $media = array (
             // The WebM signature
-             array (
+            array (
                 'mime'      => 'video/webm',
                 'pattern'   => "\x1A\x45\xDF\xA3",
                 'mask'      => "\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // The .snd signature
-             array (
+            array (
                 'mime'      => 'audio/basic',
                 'pattern'   => "\x2E\x73\x6E\x64",
                 'mask'      => "\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // "FORM" followed by 4 bytes followed by "AIFF" - the AIFF signature
-             array (
+            array (
                 'mime'      => 'audio/aiff',
                 'pattern'   => "\x46\x4F\x52\x4D\x00\x00\x00\x00\x41\x49\x46\x46",
                 'mask'      => "\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // MP3 without ID3 tag
-             array (
+            array (
                 'mime'      => 'audio/mpeg',
                 'pattern'   => "\xFF\xFB",
                 'mask'      => "\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // "ID3" and the ID3v2-tagged MP3 signature
-             array (
+            array (
                 'mime'      => 'audio/mpeg',
                 'pattern'   => "\x49\x44\x33",
                 'mask'      => "\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // "OggS" followed by NUL - The OGG signature
-             array (
+            array (
                 'mime'      => 'application/ogg',
                 'pattern'   => "\x4F\x67\x67\x53\x00",
                 'mask'      => "\xFF\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // "MThd" followed by 4 bytes representing the number 6 in 32 bits (big endian) - MIDI signature
-             array (
+            array (
                 'mime'      => 'audio/midi',
                 'pattern'   => "\x4D\x54\x68\x64\x00\x00\x00\x06",
                 'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // "RIFF" followed by 4 bytes followed by "AVI" - AVI signature
-             array (
+            array (
                 'mime'      => 'video/avi',
                 'pattern'   => "\x52\x49\x46\x46\x00\x00\x00\x00\x41\x56\x49\x20",
                 'mask'      => "\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // "RIFF" followed by 4 bytes followed by "WAVE" - WAVE signature
-             array (
+            array (
                 'mime'      => 'audio/wave',
                 'pattern'   => "\x52\x49\x46\x46\x00\x00\x00\x00\x57\x41\x56\x45",
                 'mask'      => "\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF",
@@ -170,10 +147,8 @@
             // 34 bytes followed by "LP" - Opentype signature
             array (
                 'mime'      => 'application/vnd.ms-fontobject',
-                'pattern'   => "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" .
-                                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x4C\x50",
-                'mask'      => "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" .
-                                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF",
+                'pattern'   => "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x4C\x50",
+                'mask'      => "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // 4 bytes representing version type 1 of true type font
@@ -439,19 +414,19 @@
         public function __construct($file) {
             $this->file = $file;
 
-            $this->read_resource_header();
-            $this->detect_type();
+            $this->readResourceHeader();
+            $this->detectType();
         }
 
         /* The public API */
-        public function is_empty() {
+        public function isEmpty() {
             if ('inode/x-empty' === $this->detected_type)
                 return true;
 
             return false;
         }
 
-        public function is_text() {
+        public function isText() {
             $detected = false;
 
             switch ($this->detected_type) {
@@ -466,7 +441,7 @@
             return $detected;
         }
 
-        public function is_font() {
+        public function isFont() {
             $detected = false;
 
             switch ($this->detected_type) {
@@ -486,7 +461,7 @@
             return $detected;
         }
 
-        public function is_zip() {
+        public function isZip() {
             $detected = false;
 
             switch ($this->detected_type) {
@@ -503,7 +478,7 @@
             return $detected;
         }
 
-        public function is_archive() {
+        public function isArchive() {
             $detected = false;
 
             switch ($this->detected_type) {
@@ -519,7 +494,7 @@
             return $detected;
         }
 
-        public function is_scriptable() {
+        public function isScriptable() {
             $detected = false;
 
             switch ($this->detected_type) {
@@ -535,16 +510,16 @@
             return $detected;
         }
 
-        public function get_type() {
+        public function getType() {
             return $this->detected_type;
         }
 
         /**
          * Helper functions.
-         *  Execution is passed over to detect_type after the
+         *  Execution is passed over to detectType after the
          *  construct sets up the data.
          */
-        protected function read_resource_header() {
+        protected function readResourceHeader() {
             if (is_string($this->file)) {
                 $fp     = fopen($this->file, 'r');
                 $header = fread($fp, 512);
@@ -561,7 +536,7 @@
             $this->header = &$header;
         }
 
-        protected function match_pattern($pattern, $mask, $ignore) {
+        protected function matchPattern($pattern, $mask, $ignore) {
             if (empty($pattern) || empty($mask)) {
                 return false;
             }
@@ -608,7 +583,7 @@
             return true;
         }
 
-        protected function html_match_pattern($pattern, $mask, $ignore, $trailing) {
+        protected function htmlMatchPattern($pattern, $mask, $ignore, $trailing) {
             if (empty($pattern) || empty($mask)) {
                 return false;
             }
@@ -661,19 +636,19 @@
             return true;
         }
 
-        protected function detect_type() {
-            if ($this->sniff_empty())   return;
-            if ($this->sniff_images())  return;
-            if ($this->sniff_media())   return;
-            if ($this->sniff_fonts())   return;
-            if ($this->sniff_archive()) return;
-            if ($this->sniff_text())    return;
-            if ($this->sniff_unknown()) return;
-            if ($this->sniff_others())  return;
+        protected function detectType() {
+            if ($this->sniffEmpty())    return;
+            if ($this->sniffImages())   return;
+            if ($this->sniffMedia())    return;
+            if ($this->sniffFonts())    return;
+            if ($this->sniffArchive())  return;
+            if ($this->sniffText())     return;
+            if ($this->sniffUnknown())  return;
+            if ($this->sniffOthers())   return;
         }
 
         /* Sniffer functions */
-        protected function sniff_empty() {
+        protected function sniffEmpty() {
             if (strlen($this->header) === 0) {
                 $this->detected_type    = 'inode/x-empty';
                 return true;
@@ -682,13 +657,13 @@
             return false;
         }
 
-        protected function sniff_images() {
+        protected function sniffImages() {
             $num_imgs = count(self::$image);
 
             for ($i = 0; $i < $num_imgs; $i++) {
                 $im = &self::$image[$i];
 
-                if ($this->match_pattern($im['pattern'], $im['mask'], $im['ignore'])) {
+                if ($this->matchPattern($im['pattern'], $im['mask'], $im['ignore'])) {
                     $this->detected_type = $im['mime'];
                     return true;
                 }
@@ -697,18 +672,18 @@
             return false;
         }
 
-        protected function sniff_media() {
+        protected function sniffMedia() {
             $num_media = count(self::$media);
 
             for ($i = 0; $i < $num_media; $i++) {
                 $m = &self::$media[$i];
-                if ($this->match_pattern($m['pattern'], $m['mask'], $m['ignore'])) {
+                if ($this->matchPattern($m['pattern'], $m['mask'], $m['ignore'])) {
                     $this->detected_type = $m['mime'];
                     return true;
                 }
             }
 
-            if ($this->sniff_mp4()) {
+            if ($this->sniffMp4()) {
                 $this->detected_type = 'video/mp4';
                 return true;
             }
@@ -716,7 +691,7 @@
             return false;
         }
 
-        protected function sniff_mp4() {
+        protected function sniffMp4() {
             $sequence   = &$this->header;
             $seq_len    = strlen($sequence);
 
@@ -752,12 +727,12 @@
             return false;
         }
 
-        protected function sniff_fonts() {
+        protected function sniffFonts() {
             $num_fonts = count(self::$fonts);
 
             for ($i = 0; $i < $num_fonts; $i++) {
                 $f = &self::$fonts[$i];
-                if ($this->match_pattern($f['pattern'], $f['mask'], $f['ignore'])) {
+                if ($this->matchPattern($f['pattern'], $f['mask'], $f['ignore'])) {
                     $this->detected_type = $f['mime'];
                     return true;
                 }
@@ -766,12 +741,12 @@
             return false;
         }
 
-        protected function sniff_archive() {
+        protected function sniffArchive() {
             $num_archives = count(self::$archive);
 
             for ($i = 0; $i < $num_archives; $i++) {
                 $a = &self::$archive[$i];
-                if ($this->match_pattern($a['pattern'], $a['mask'], $a['ignore'])) {
+                if ($this->matchPattern($a['pattern'], $a['mask'], $a['ignore'])) {
                     $this->detected_type = $a['mime'];
                     return true;
                 }
@@ -780,12 +755,12 @@
             return false;
         }
 
-        protected function sniff_text() {
+        protected function sniffText() {
             $num_texts = count(self::$text);
 
             for ($i = 0; $i < $num_texts; $i++) {
                 $t = &self::$text[$i];
-                if ($this->match_pattern($t['pattern'], $t['mask'], $t['ignore'])) {
+                if ($this->matchPattern($t['pattern'], $t['mask'], $t['ignore'])) {
                     if ($this->has_binary_data()) {
                         return false;
                     } else {
@@ -798,18 +773,18 @@
             return false;
         }
 
-        protected function sniff_unknown() {
+        protected function sniffUnknown() {
             $num_unknown = count(self::$unknown);
             for ($i = 0; $i < $num_unknown; $i++) {
                 $u = &self::$unknown[$i];
                 if ('text/html' === $u['mime']) {
                     $trailing = (array_key_exists('trailing', $u) ? $u['trailing'] : '');
-                    if ($this->html_match_pattern($u['pattern'], $u['mask'], $u['ignore'], $trailing)) {
+                    if ($this->htmlMatchPattern($u['pattern'], $u['mask'], $u['ignore'], $trailing)) {
                         $this->detected_type = 'text/html';
                         return true;
                     }
                 } else {
-                    if ($this->match_pattern($u['pattern'], $u['mask'], $u['ignore'])) {
+                    if ($this->matchPattern($u['pattern'], $u['mask'], $u['ignore'])) {
                         $this->detected_type = $u['mime'];
                         return true;
                     }
@@ -819,11 +794,11 @@
             return false;
         }
 
-        protected function sniff_others() {
+        protected function sniffOthers() {
             $num_others = count(self::$others);
             for ($i = 0; $i < $num_others; $i++) {
                 $o = &self::$others[$i];
-                if ($this->match_pattern($o['pattern'], $o['mask'], $o['ignore'])) {
+                if ($this->matchPattern($o['pattern'], $o['mask'], $o['ignore'])) {
                     $this->detected_type = $o['mime'];
                     return true;
                 }
@@ -832,7 +807,7 @@
             return false;
         }
 
-        protected function has_binary_data() {
+        protected function hasBinaryData() {
             static $binary_chars;
 
             if (is_string($binary_chars))
