@@ -554,6 +554,9 @@
             if ($this->sniffText())    return;
             if ($this->sniffHtml())    return;
             if ($this->sniffOthers())  return;
+
+            // The MIME type could not be sniffed. Default to octet-stream.
+            $this->detected_type = 'application/octet-stream';
         }
 
         // Used to match a non-HTML pattern against the header
