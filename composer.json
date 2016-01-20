@@ -12,6 +12,8 @@
         }
     ],
     "autoload": {
-        "Shanept\\": "src/"
+        "psr-4": {
+            "Shanept\\": "src/"
+        }
     }
 }
