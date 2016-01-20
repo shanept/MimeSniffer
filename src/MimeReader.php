@@ -415,15 +415,13 @@
         );
 
         public function __construct($file) {
+            // Accepts either a file pointer or a file path
             $this->file = $file;
-
-            $this->readResourceHeader();
-            $this->detectType();
         }
 
         /* The public API */
         public function isEmpty() {
-            if ('inode/x-empty' === $this->detected_type)
+            if ('inode/x-empty' === $this->getType())
                 return true;
 
             return false;
@@ -432,7 +430,7 @@
         public function isText() {
             $detected = false;
 
-            switch ($this->detected_type) {
+            switch ($this->getType()) {
                 case 'application/postscript':
                 case 'text/plain':
                     $detected = true;
@@ -447,7 +445,7 @@
         public function isFont() {
             $detected = false;
 
-            switch ($this->detected_type) {
+            switch ($this->getType()) {
                 case 'application/font-ttf':
                 case 'application/font-cff':
                 case 'application/font-otf':
@@ -467,7 +465,7 @@
         public function isZip() {
             $detected = false;
 
-            switch ($this->detected_type) {
+            switch ($this->getType()) {
                 case 'application/zip':
                     $detected = true;
                     break;
@@ -475,7 +473,7 @@
                     break;
             }
 
-            if (substr($this->detected_type, -4) === '+zip')
+            if (substr($this->getType(), -4) === '+zip')
                 $detected = true;
 
             return $detected;
@@ -484,7 +482,7 @@
         public function isArchive() {
             $detected = false;
 
-            switch ($this->detected_type) {
+            switch ($this->getType()) {
                 case 'application/x-rar-compressed':
                 case 'application/zip':
                 case 'application/x-gzip':
@@ -500,7 +498,7 @@
         public function isScriptable() {
             $detected = false;
 
-            switch ($this->detected_type) {
+            switch ($this->getType()) {
                 case 'text/html':
                 case 'application/pdf':
                 case 'application/postscript':
@@ -514,15 +512,22 @@
         }
 
         public function getType() {
+            if (is_null($this->detected_type)) {
+                $this->readResourceHeader();
+                $this->detectType();
+            }
+
             return $this->detected_type;
         }
 
         /**
          * Helper functions.
-         *  Execution is passed over to detectType after the
-         *  construct sets up the data.
          */
+
+        // Loads the first 512 bytes into a member variable
         protected function readResourceHeader() {
+            // If it is a string, it is the path to a file.
+            // Otherwise, it is a file pointer.
             if (is_string($this->file)) {
                 $fp     = fopen($this->file, 'r');
                 $header = fread($fp, 512);
@@ -539,6 +544,19 @@
             $this->header = &$header;
         }
 
+        // Runs through the classes detecting the MIME type
+        protected function detectType() {
+            if ($this->sniffEmpty())   return;
+            if ($this->sniffImages())  return;
+            if ($this->sniffMedia())   return;
+            if ($this->sniffFonts())   return;
+            if ($this->sniffArchive()) return;
+            if ($this->sniffText())    return;
+            if ($this->sniffHtml())    return;
+            if ($this->sniffOthers())  return;
+        }
+
+        // Used to match a non-HTML pattern against the header
         protected function matchPattern($pattern, $mask, $ignore) {
             if (empty($pattern) || empty($mask)) {
                 return false;
@@ -586,6 +604,7 @@
             return true;
         }
 
+        // Used to match an HTML pattern against the header
         protected function htmlMatchPattern($pattern, $mask, $ignore, $trailing) {
             if (empty($pattern) || empty($mask)) {
                 return false;
@@ -639,21 +658,12 @@
             return true;
         }
 
-        protected function detectType() {
-            if ($this->sniffEmpty())   return;
-            if ($this->sniffImages())  return;
-            if ($this->sniffMedia())   return;
-            if ($this->sniffFonts())   return;
-            if ($this->sniffArchive()) return;
-            if ($this->sniffText())    return;
-            if ($this->sniffHtml())    return;
-            if ($this->sniffOthers())  return;
-        }
-
-        /* Sniffer functions */
+        /**
+         * Sniffer functions
+         */
         protected function sniffEmpty() {
             if (strlen($this->header) === 0) {
-                $this->detected_type    = 'inode/x-empty';
+                $this->detected_type = 'inode/x-empty';
                 return true;
             }
 
@@ -695,8 +705,8 @@
         }
 
         protected function sniffMp4() {
-            $sequence   = &$this->header;
-            $seq_len    = strlen($sequence);
+            $sequence = &$this->header;
+            $seq_len  = strlen($sequence);
 
             if ($seq_len < 12) {
                 return false;
