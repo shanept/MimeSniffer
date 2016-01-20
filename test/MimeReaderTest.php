@@ -28,6 +28,28 @@
             'midi-audio.midi'       => "MThd\x00\x00\x00\x06",
             'avi-video.avi'         => "RIFF\x00\x00\x00\x00AVI\x20",
             'wave-audio.wave'       => "RIFF\x00\x00\x00\x00WAVE",
+
+            // fonts
+            'opentype1-font.otf'    => "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00LP",
+            'truetype-font.ttf'     => "\x00\x01\x00\x00",
+            'opentype2-font.otf'    => 'OTTO',
+            'ttf-collection.ttc'    => 'ttcf',
+            'woff-font.woff'        => 'wOFF',
+
+            // archive
+            'gzip-archive.gz'       => "\x1F\x8B\x08",
+            'zip-archive.zip'       => "PK\x03\x04",
+            'rar-archive.rar'       => "Rar \x1A\x07\x00",
+
+            // text
+            'postscript.ps'         => "\x25\x21\x50\x53\x2D\x41\x64\x6F\x62\x65",
+            'utf16-big-endian.txt'  => "\xFF\xFE",
+          'utf16-little-endian.txt' => "\xFE\xFF",
+            'utf8-bom.txt'          => "\xEF\xBB\xBF",
+
+            // others
+            'windows-exe.exe'       => "\x4D\x5A",
+            'elf-exe.elf'           => "\x7FELF",
         );
 
         public function setUp()
@@ -183,5 +205,103 @@
             $mime = new MimeReader('wave-audio.wave');
 
             $this->assertEquals('audio/wave', $mime->getType());
+        }
+
+        public function testTTF()
+        {
+            $mime = new MimeReader('truetype-font.ttf');
+
+            $this->assertEquals('application/font-ttf', $mime->getType());
+        }
+
+        public function testOTF1()
+        {
+            $mime = new MimeReader('opentype1-font.otf');
+
+            $this->assertEquals('application/vnd.ms-fontobject', $mime->getType());
+        }
+
+        public function testOTF2()
+        {
+            $mime = new MimeReader('opentype2-font.otf');
+
+            $this->assertEquals('application/font-off', $mime->getType());
+        }
+
+        public function testTTFCollection()
+        {
+            $mime = new MimeReader('ttf-collection.ttc');
+
+            $this->assertEquals('application/x-font-truetype-collection', $mime->getType());
+        }
+
+        public function testWOFF()
+        {
+            $mime = new MimeReader('woff-font.woff');
+
+            $this->assertEquals('application/font-woff', $mime->getType());
+        }
+
+        public function testGZIP()
+        {
+            $mime = new MimeReader('gzip-archive.gz');
+
+            $this->assertEquals('application/x-gzip', $mime->getType());
+        }
+
+        public function testZIP()
+        {
+            $mime = new MimeReader('zip-archive.zip');
+
+            $this->assertEquals('application/zip', $mime->getType());
+        }
+
+        public function testRAR()
+        {
+            $mime = new MimeReader('rar-archive.rar');
+
+            $this->assertEquals('application/x-rar-compressed', $mime->getType());
+        }
+
+        public function testPostScript()
+        {
+            $mime = new MimeReader('postscript.ps');
+
+            $this->assertEquals('application/postscript', $mime->getType());
+        }
+
+        public function testUTF16Big()
+        {
+            $mime = new MimeReader('utf16-big-endian.txt');
+
+            $this->assertEquals('text/plain', $mime->getType());
+        }
+
+        public function testUTF16Little()
+        {
+            $mime = new MimeReader('utf16-little-endian.txt');
+
+            $this->assertEquals('text/plain', $mime->getType());
+        }
+
+        public function testUTF8BOM()
+        {
+            $mime = new MimeReader('utf8-bom.txt');
+
+            $this->assertEquals('text/plain', $mime->getType());
+        }
+
+        public function testWinEXE()
+        {
+            $mime = new MimeReader('windows-exe.exe');
+
+            $this->assertEquals('application/x-msdownload', $mime->getType());
+        }
+
+        public function testELF()
+        {
+            $mime = new MimeReader('elf-exe.elf');
+
+            $this->assertEquals('application/octet-stream', $mime->getType());
         }
     }
