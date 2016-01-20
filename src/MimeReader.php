@@ -237,14 +237,16 @@
         );
         
         protected static $others = array (
+            // Windows executable file
             array (
-                'mime'      => 'WINDOWS EXECUTABLE',
+                'mime'      => 'application/x-msdownload',
                 'pattern'   => "\x4D\x5A",
                 'mask'      => "\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
+            // Unix ELF format - DEL followed by "ELF"
             array (
-                'mime'      => 'EXEC_LINKABLE',
+                'mime'      => 'application/octet-stream',
                 'pattern'   => "\x7F\x45\x4C\x46",
                 'mask'      => "\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
@@ -761,7 +763,7 @@
             for ($i = 0; $i < $num_texts; $i++) {
                 $t = &self::$text[$i];
                 if ($this->matchPattern($t['pattern'], $t['mask'], $t['ignore'])) {
-                    if ($this->has_binary_data()) {
+                    if ($this->hasBinaryData()) {
                         return false;
                     } else {
                         $this->detected_type = $t['mime'];
