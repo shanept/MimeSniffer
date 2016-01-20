@@ -250,10 +250,25 @@
                 'pattern'   => "\x7F\x45\x4C\x46",
                 'mask'      => "\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
+            ),
+            // "%PDF" - PDF signature
+            array (
+                'mime'      => 'application/pdf',
+                'pattern'   => "\x25\x50\x44\x46",
+                'mask'      => "\xFF\xFF\xFF\xFF",
+                'ignore'    => self::IGNORE_NOTHING
             )
+            // "PK" followed by 18 bytes - Microsoft Open Office signature
+/*          array (
+                'mime'      => 'application/docx',
+                'pattern'   => "\x50\x4B\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                'mask'      => "\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                'ignore'    => self::IGNORE_NOTHING
+            ) */
+
         );
 
-        protected static $unknown = array (
+        protected static $html = array (
             // "<!DOCTYPE HTML"
             array (
                 'mime'      => 'text/html',
@@ -396,21 +411,7 @@
                 'pattern'   => "\x3C\x3F\x78\x6D\x6C",
                 'mask'      => "\xFF\xFF\xFF\xFF\xFF",
                 'ignore'    => self::WHITESPACE_CHARACTERS
-            ),
-            // "%PDF" - PDF signature
-            array (
-                'mime'      => 'application/pdf',
-                'pattern'   => "\x25\x50\x44\x46",
-                'mask'      => "\xFF\xFF\xFF\xFF",
-                'ignore'    => self::IGNORE_NOTHING
             )
-            // "PK" followed by 18 bytes - Microsoft Open Office signature
-/*          array (
-                'mime'      => 'application/docx',
-                'pattern'   => "\x50\x4B\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-                'mask'      => "\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-                'ignore'    => self::IGNORE_NOTHING
-            ) */
         );
 
         public function __construct($file) {
@@ -639,14 +640,14 @@
         }
 
         protected function detectType() {
-            if ($this->sniffEmpty())    return;
-            if ($this->sniffImages())   return;
-            if ($this->sniffMedia())    return;
-            if ($this->sniffFonts())    return;
-            if ($this->sniffArchive())  return;
-            if ($this->sniffText())     return;
-            if ($this->sniffUnknown())  return;
-            if ($this->sniffOthers())   return;
+            if ($this->sniffEmpty())   return;
+            if ($this->sniffImages())  return;
+            if ($this->sniffMedia())   return;
+            if ($this->sniffFonts())   return;
+            if ($this->sniffArchive()) return;
+            if ($this->sniffText())    return;
+            if ($this->sniffHtml())    return;
+            if ($this->sniffOthers())  return;
         }
 
         /* Sniffer functions */
@@ -775,10 +776,10 @@
             return false;
         }
 
-        protected function sniffUnknown() {
-            $num_unknown = count(self::$unknown);
-            for ($i = 0; $i < $num_unknown; $i++) {
-                $u = &self::$unknown[$i];
+        protected function sniffHtml() {
+            $num_html = count(self::$html);
+            for ($i = 0; $i < $num_html; $i++) {
+                $u = &self::$html[$i];
                 if ('text/html' === $u['mime']) {
                     $trailing = (array_key_exists('trailing', $u) ? $u['trailing'] : '');
                     if ($this->htmlMatchPattern($u['pattern'], $u['mask'], $u['ignore'], $trailing)) {
