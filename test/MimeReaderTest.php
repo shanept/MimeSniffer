@@ -72,6 +72,8 @@
             'comment-tag.html'      => '<!-- ',
             'xml-tag.html'          => '<?xml',
 
+            // Final unknown file type.
+            'unknown.sniffme'       => "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09"
         );
 
         public function setUp()
@@ -458,5 +460,12 @@
             $mime = new MimeReader('xml-tag.html');
 
             $this->assertEquals('text/xml', $mime->getType());
+        }
+
+        public function testUnknownFileType()
+        {
+            $mime = new MimeReader('unknown.sniffme');
+
+            $this->assertEquals('application/octet-stream', $mime->getType());
         }
     }
