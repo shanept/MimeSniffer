@@ -209,8 +209,8 @@
             // "%!PS-Adobe-" - Postscript signature
             array (
                 'mime'      => 'application/postscript',
-                'pattern'   => "\x25\x50\x53\x2D\x41\x64\x6F\x62\x65",
-                'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
+                'pattern'   => "\x25\x21\x50\x53\x2D\x41\x64\x6F\x62\x65",
+                'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
                 'ignore'    => self::IGNORE_NOTHING
             ),
             // UTF-16 Big Endian BOM text
