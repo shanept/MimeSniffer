@@ -50,6 +50,28 @@
             // others
             'windows-exe.exe'       => "\x4D\x5A",
             'elf-exe.elf'           => "\x7FELF",
+            'pdf-file.pdf'          => '%PDF',
+
+            // html
+            'doctype-tag.html'      => '<!DOCTYPE html>',
+            'html-tag.html'         => '<html>',
+            'head-tag.html'         => '<head>',
+            'script-tag.html'       => '<script>',
+            'iframe-tag.html'       => '<iframe>',
+            'h1-tag.html'           => '<h1>',
+            'div-tag.html'          => '<div>',
+            'font-tag.html'         => '<font>',
+            'table-tag.html'        => '<table>',
+            'a-tag.html'            => '<a>',
+            'style-tag.html'        => '<style>',
+            'title-tag.html'        => '<title>',
+            'b-tag.html'            => '<b>',
+            'body-tag.html'         => '<body>',
+            'br-tag.html'           => '<br>',
+            'p-tag.html'            => '<p>',
+            'comment-tag.html'      => '<!-- ',
+            'xml-tag.html'          => '<?xml',
+
         );
 
         public function setUp()
@@ -303,5 +325,138 @@
             $mime = new MimeReader('elf-exe.elf');
 
             $this->assertEquals('application/octet-stream', $mime->getType());
+        }
+
+        public function testPDF()
+        {
+            $mime = new MimeReader('pdf-file.pdf');
+
+            $this->assertEquals('application/pdf', $mime->getType());
+        }
+
+        public function testDOCTYPE()
+        {
+            $mime = new MimeReader('doctype-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testHTML()
+        {
+            $mime = new MimeReader('html-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testHEAD()
+        {
+            $mime = new MimeReader('head-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testSCRIPT()
+        {
+            $mime = new MimeReader('script-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testIFRAME()
+        {
+            $mime = new MimeReader('iframe-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testH1()
+        {
+            $mime = new MimeReader('h1-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testDIV()
+        {
+            $mime = new MimeReader('div-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testFONT()
+        {
+            $mime = new MimeReader('font-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testTABLE()
+        {
+            $mime = new MimeReader('table-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testA()
+        {
+            $mime = new MimeReader('a-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testSTYLE()
+        {
+            $mime = new MimeReader('style-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testTITLE()
+        {
+            $mime = new MimeReader('title-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testB()
+        {
+            $mime = new MimeReader('b-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testBODY()
+        {
+            $mime = new MimeReader('body-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testBR()
+        {
+            $mime = new MimeReader('br-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testP()
+        {
+            $mime = new MimeReader('p-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testCOMMENT()
+        {
+            $mime = new MimeReader('comment-tag.html');
+
+            $this->assertEquals('text/html', $mime->getType());
+        }
+
+        public function testXML()
+        {
+            $mime = new MimeReader('xml-tag.html');
+
+            $this->assertEquals('text/xml', $mime->getType());
         }
     }
