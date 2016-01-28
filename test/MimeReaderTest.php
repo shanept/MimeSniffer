@@ -78,7 +78,7 @@
 
         public function setUp()
         {
-            $this->gen_dir = __DIR__ . '/generated/';
+            $this->gen_dir = sys_get_temp_dir() . '/generated/';
             $this->old_dir = getcwd();
 
             if (!file_exists($this->gen_dir))
