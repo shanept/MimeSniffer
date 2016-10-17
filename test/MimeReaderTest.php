@@ -3,8 +3,8 @@
     use Shanept\MimeReader;
 
     class MimeReaderTest extends PHPUnit_Framework_TestCase {
-        private $old_dir;
-        private $gen_dir;
+        private static $old_dir;
+        private static $gen_dir;
 
         private static $magic_files = array (
             // images
@@ -76,15 +76,15 @@
             'unknown.sniffme'       => "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09"
         );
 
-        public function setUp()
+        public static function setUpBeforeClass()
         {
-            $this->gen_dir = sys_get_temp_dir() . '/generated/';
-            $this->old_dir = getcwd();
+            self::$gen_dir = sys_get_temp_dir() . '/generated/';
+            self::$old_dir = getcwd();
 
-            if (!file_exists($this->gen_dir))
-                mkdir($this->gen_dir);
+            if (!file_exists(self::$gen_dir))
+                mkdir(self::$gen_dir);
 
-            chdir($this->gen_dir);
+            chdir(self::$gen_dir);
 
             foreach (self::$magic_files as $file=>$contents) {
                 $fp = fopen($file, 'wb');
@@ -93,7 +93,7 @@
             }
         }
 
-        public function tearDown()
+        public static function tearDownAfterClass()
         {
             foreach (self::$magic_files as $file=>$contents) {
                 if (file_exists($file)) {
@@ -101,8 +101,8 @@
                 }
             }
 
-            chdir($this->old_dir);
-            rmdir($this->gen_dir);
+            chdir(self::$old_dir);
+            rmdir(self::$gen_dir);
         }
 
         public function testWindowsIcon()
