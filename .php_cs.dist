@@ -1,0 +1,74 @@
+<?php
+return PhpCsFixer\Config::create()
+      // 4 spaces
+    ->setIndent('    ')
+    ->setLineEnding("\n")
+    ->setUsingCache(false)
+    ->setRiskyAllowed(true)
+    ->setRules(array(
+        '@PSR2' => true,
+        'braces' => ['allow_single_line_closure' => true],
+        'single_class_element_per_statement' => true,    // overwrite PSR2
+        'array_syntax' => array('syntax' => 'long'),
+        'no_whitespace_before_comma_in_array' => true,
+        'trailing_comma_in_multiline_array' => true,
+        'psr4' => true,
+        'cast_spaces' => true,
+        'lowercase_cast' => true,
+        'modernize_types_casting' => true,
+        'no_short_bool_cast' => true,
+        'short_scalar_cast' => true,
+        'method_separation' => true,
+        'no_blank_lines_after_class_opening' => true,
+        'no_php4_constructor' => true,
+        'ordered_class_elements' => true,
+        'include' => true,
+        'no_useless_else' => true,
+        'return_type_declaration' => true,
+        'no_leading_import_slash' => true,
+        'no_unused_imports' => true,
+        'dir_constant' => true,
+        'single_blank_line_before_namespace' => true,
+        'no_leading_namespace_whitespace' => true,
+        'binary_operator_spaces' => array('align_equals' => true, 'align_double_arrow' => true),
+        'concat_space' => array('spacing' => 'one'),
+        'new_with_braces' => true,
+        'object_operator_without_whitespace' => true,
+        'ternary_operator_spaces' => true,
+        'unary_operator_spaces' => true,
+        'no_short_echo_tag' => true,
+        'php_unit_construct' => true,
+        'php_unit_dedicate_assert' => true,
+        'php_unit_strict' => true,
+        'no_blank_lines_after_phpdoc' => true,
+        'no_empty_phpdoc' => true,
+        'phpdoc_add_missing_param_annotation' => array('only_untyped' => false),
+        'phpdoc_align' => true,
+        'phpdoc_annotation_without_dot' => true,
+        'phpdoc_indent' => true,
+        'phpdoc_no_empty_return' => true,
+        'phpdoc_scalar' => true,
+        'phpdoc_separation' => true,
+        'phpdoc_single_line_var_spacing' => true,
+        'phpdoc_summary' => true,
+        'phpdoc_to_comment' => true,
+        'phpdoc_trim' => true,
+        'phpdoc_types' => true,
+        'phpdoc_var_without_name' => true,
+        'blank_line_before_return' => true,
+        'semicolon_after_instruction' => true,
+        'space_after_semicolon' => true,
+        'strict_param' => true,
+        'heredoc_to_nowdoc' => true,
+        'single_quote' => true,
+        'no_extra_consecutive_blank_lines' => array('break', 'continue', 'extra', 'return', 'throw', 'useTrait', 'parenthesis_brace_block', 'square_brace_block', 'curly_brace_block'),
+        'no_spaces_around_offset' => true,
+        'no_whitespace_in_blank_line' => true,
+        'no_unreachable_default_argument_value' => true,
+    ))
+    ->setFinder(
+        PhpCsFixer\Finder::create()
+            ->exclude('tests/Fixtures')
+            ->in(__DIR__)
+    )
+;
