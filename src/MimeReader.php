@@ -1,433 +1,438 @@
 <?php
 namespace Shanept;
 
-class MimeReader {
-    protected $file = null;
-    protected $detected_type = null;
-    protected $header = null;
-
+class MimeReader
+{
     const IGNORE_NOTHING = '';
+
     const BINARY_CHARACTERS = "\x00\x01\x02\x03\x04\x05\x06\x07\0x08\x0B\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1C\x1D\x1E\x1F";
+
     const WHITESPACE_CHARACTERS = "\x09\x0A\x0C\x0D\x20";
+
     const TAG_TERMINATING_CHARACTERS = "\x20\x3E";
 
-    protected static $image = array (
+    private $file = null;
+
+    private $detected_type = null;
+
+    private $header = null;
+
+    private static $image = array(
         // Windows Icon
-        array (
+        array(
             'mime'      => 'image/x-icon',
             'pattern'   => "\x00\x00\x01\x00",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // Windows Cursor signature
         array(
             'mime'      => 'image/x-icon',
             'pattern'   => "\x00\x00\x02\x00",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "BM" - BMP signature
-        array (
+        array(
             'mime'      => 'image/bmp',
             'pattern'   => "\x42\x4D",
             'mask'      => "\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "GIF87a" - GIF signature
-        array (
+        array(
             'mime'      => 'image/gif',
             'pattern'   => "\x47\x49\x46\x38\x37\x61",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "GIF89a" - GIF signature
-        array (
+        array(
             'mime'      => 'image/gif',
             'pattern'   => "\x47\x49\x46\x38\x39\x61",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "RIFF" followed by 4 bytes followed by "WEBPVP"
-        array (
+        array(
             'mime'      => 'image/webp',
             'pattern'   => "\x52\x49\x46\x46\x00\x00\x00\x00\x57\x45\x42\x50\x56\x50",
             'mask'      => "\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // A byte with only the highest bit set followed by the string "PNG" followed by CR LF SUB LF - PNG signature
-        array (
+        array(
             'mime'      => 'image/png',
             'pattern'   => "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // JPEG start of image marker followed by another marker
-        array (
+        array(
             'mime'      => 'image/jpeg',
             'pattern'   => "\xFF\xD8\xFF",
             'mask'      => "\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "8BPS" - Photoshop signature
-        array (
+        array(
             'mime'      => 'application/psd',
             'pattern'   => "\x38\x42\x50\x53",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
-        )
+            'ignore'    => self::IGNORE_NOTHING,
+        ),
     );
 
-    protected static $media = array (
+    private static $media = array(
         // The WebM signature
-        array (
+        array(
             'mime'      => 'video/webm',
             'pattern'   => "\x1A\x45\xDF\xA3",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // The .snd signature
-        array (
+        array(
             'mime'      => 'audio/basic',
             'pattern'   => "\x2E\x73\x6E\x64",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "FORM" followed by 4 bytes followed by "AIFF" - the AIFF signature
-        array (
+        array(
             'mime'      => 'audio/aiff',
             'pattern'   => "\x46\x4F\x52\x4D\x00\x00\x00\x00\x41\x49\x46\x46",
             'mask'      => "\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // MP3 without ID3 tag
-        array (
+        array(
             'mime'      => 'audio/mpeg',
             'pattern'   => "\xFF\xFB",
             'mask'      => "\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "ID3" and the ID3v2-tagged MP3 signature
-        array (
+        array(
             'mime'      => 'audio/mpeg',
             'pattern'   => "\x49\x44\x33",
             'mask'      => "\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "OggS" followed by NUL - The OGG signature
-        array (
+        array(
             'mime'      => 'application/ogg',
             'pattern'   => "\x4F\x67\x67\x53\x00",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "MThd" followed by 4 bytes representing the number 6 in 32 bits (big endian) - MIDI signature
-        array (
+        array(
             'mime'      => 'audio/midi',
             'pattern'   => "\x4D\x54\x68\x64\x00\x00\x00\x06",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "RIFF" followed by 4 bytes followed by "AVI" - AVI signature
-        array (
+        array(
             'mime'      => 'video/avi',
             'pattern'   => "\x52\x49\x46\x46\x00\x00\x00\x00\x41\x56\x49\x20",
             'mask'      => "\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "RIFF" followed by 4 bytes followed by "WAVE" - WAVE signature
-        array (
+        array(
             'mime'      => 'audio/wave',
             'pattern'   => "\x52\x49\x46\x46\x00\x00\x00\x00\x57\x41\x56\x45",
             'mask'      => "\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
-        )
+            'ignore'    => self::IGNORE_NOTHING,
+        ),
     );
-    
-    protected static $fonts = array (
+
+    private static $fonts = array(
         // 34 bytes followed by "LP" - Opentype signature
-        array (
+        array(
             'mime'      => 'application/vnd.ms-fontobject',
             'pattern'   => "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x4C\x50",
             'mask'      => "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // 4 bytes representing version type 1 of true type font
-        array (
+        array(
             'mime'      => 'application/font-ttf',
             'pattern'   => "\x00\x01\x00\x00",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "OTTO" - Opentype signature
-        array (
+        array(
             'mime'      => 'application/font-off',      // application/vnd.ms-opentype
             'pattern'   => "\x4F\x54\x54\x4F",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "ttcf" - Truetype Collection signature
-        array (
+        array(
             'mime'      => 'application/x-font-truetype-collection',
             'pattern'   => "\x74\x74\x63\x66",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // 'wOFF' - Web Open Font Format signature
-        array (
+        array(
             'mime'      => 'application/font-woff',
             'pattern'   => "\x77\x4F\x46\x46",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
-        )
+            'ignore'    => self::IGNORE_NOTHING,
+        ),
     );
 
-    protected static $archive = array (
+    private static $archive = array(
         // GZIP signature
-        array (
+        array(
             'mime'      => 'application/x-gzip',
             'pattern'   => "\x1F\x8B\x08",
             'mask'      => "\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "PK" followed by ETX, EOT - ZIP signature
-        array (
+        array(
             'mime'      => 'application/zip',
             'pattern'   => "\x50\x4B\x03\x04",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "Rar " followed by SUB, BEL, NUL - RAR signature
-        array (
+        array(
             'mime'      => 'application/x-rar-compressed',
             'pattern'   => "\x52\x61\x72\x20\x1A\x07\x00",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
-        )
+            'ignore'    => self::IGNORE_NOTHING,
+        ),
     );
-    
-    protected static $text = array (
+
+    private static $text = array(
         // "%!PS-Adobe-" - Postscript signature
-        array (
+        array(
             'mime'      => 'application/postscript',
             'pattern'   => "\x25\x21\x50\x53\x2D\x41\x64\x6F\x62\x65",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // UTF-16 Big Endian BOM text
-        array (
+        array(
             'mime'      => 'text/plain',
             'pattern'   => "\xFF\xFE",
             'mask'      => "\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // UTF-16 Little Endian BOM text
-        array (
+        array(
             'mime'      => 'text/plain',
             'pattern'   => "\xFE\xFF",
             'mask'      => "\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // UTF-8 BOM text
-        array (
+        array(
             'mime'      => 'text/plain',
             'pattern'   => "\xEF\xBB\xBF",
             'mask'      => "\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
-        )
+            'ignore'    => self::IGNORE_NOTHING,
+        ),
     );
-    
-    protected static $others = array (
+
+    private static $others = array(
         // Windows executable file
-        array (
+        array(
             'mime'      => 'application/x-msdownload',
             'pattern'   => "\x4D\x5A",
             'mask'      => "\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // Unix ELF format - DEL followed by "ELF"
-        array (
+        array(
             'mime'      => 'application/octet-stream',
             'pattern'   => "\x7F\x45\x4C\x46",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
+            'ignore'    => self::IGNORE_NOTHING,
         ),
         // "%PDF" - PDF signature
-        array (
+        array(
             'mime'      => 'application/pdf',
             'pattern'   => "\x25\x50\x44\x46",
             'mask'      => "\xFF\xFF\xFF\xFF",
-            'ignore'    => self::IGNORE_NOTHING
-        )
+            'ignore'    => self::IGNORE_NOTHING,
+        ),
         // "PK" followed by 18 bytes - Microsoft Open Office signature
-/*          array (
+/*          array(
             'mime'      => 'application/docx',
             'pattern'   => "\x50\x4B\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
             'mask'      => "\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            'ignore'    => self::IGNORE_NOTHING
-        ) */
-
+            'ignore'    => self::IGNORE_NOTHING,
+        ), */
     );
 
-    protected static $html = array (
+    private static $html = array(
         // "<!DOCTYPE HTML"
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x21\x44\x4F\x43\x54\x59\x50\x45\x20\x48\x54\x4D\x4C",
             'mask'      => "\xFF\xFF\xDF\xDF\xDF\xDF\xDF\xDF\xDF\xFF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<HTML" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x48\x54\x4D\x4C",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<HEAD" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x48\x45\x41\x44",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<SCRIPT" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x53\x43\x52\x49\x50\x54",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<IFRAME" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x49\x46\x52\x41\x4D\x45",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<H1" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x48\x31",
             'mask'      => "\xFF\xDF\xFF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<DIV" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x44\x49\x56",
             'mask'      => "\xFF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<FONT" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x46\x4F\x4E\x54",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<TABLE" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x54\x41\x42\x4C\x45",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<A" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x41",
             'mask'      => "\xFF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<STYLE" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x53\x54\x59\x4C\x45",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<TITLE" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x54\x49\x54\x4C\x45",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<B" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x42",
             'mask'      => "\xFF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<BODY" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x42\x4F\x44\x59",
             'mask'      => "\xFF\xDF\xDF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<BR" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x42\x52",
             'mask'      => "\xFF\xDF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<P"
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x50",
             'mask'      => "\xFF\xDF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // "<!--" followed by a tag-terminating byte
-        array (
+        array(
             'mime'      => 'text/html',
             'pattern'   => "\x3C\x21\x2D\x2D",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF",
             'ignore'    => self::WHITESPACE_CHARACTERS,
-            'trailing'  => self::TAG_TERMINATING_CHARACTERS
+            'trailing'  => self::TAG_TERMINATING_CHARACTERS,
         ),
         // The string "<?xml"
-        array (
+        array(
             'mime'      => 'text/xml',
             'pattern'   => "\x3C\x3F\x78\x6D\x6C",
             'mask'      => "\xFF\xFF\xFF\xFF\xFF",
-            'ignore'    => self::WHITESPACE_CHARACTERS
-        )
+            'ignore'    => self::WHITESPACE_CHARACTERS,
+        ),
     );
 
-    public function __construct($file) {
+    public function __construct($file)
+    {
         // Accepts either a file pointer or a file path
         $this->file = $file;
     }
 
     /* The public API */
-    public function isEmpty() {
-        if ('inode/x-empty' === $this->getType())
-            return true;
-
-        return false;
+    public function isEmpty()
+    {
+        return ('inode/x-empty' === $this->getType());
     }
 
-    public function isText() {
+    public function isText()
+    {
         $detected = false;
 
         switch ($this->getType()) {
@@ -442,7 +447,8 @@ class MimeReader {
         return $detected;
     }
 
-    public function isFont() {
+    public function isFont()
+    {
         $detected = false;
 
         switch ($this->getType()) {
@@ -462,7 +468,8 @@ class MimeReader {
         return $detected;
     }
 
-    public function isZip() {
+    public function isZip()
+    {
         $detected = false;
 
         switch ($this->getType()) {
@@ -473,13 +480,15 @@ class MimeReader {
                 break;
         }
 
-        if (substr($this->getType(), -4) === '+zip')
+        if (substr($this->getType(), -4) === '+zip') {
             $detected = true;
+        }
 
         return $detected;
     }
 
-    public function isArchive() {
+    public function isArchive()
+    {
         $detected = false;
 
         switch ($this->getType()) {
@@ -495,7 +504,8 @@ class MimeReader {
         return $detected;
     }
 
-    public function isScriptable() {
+    public function isScriptable()
+    {
         $detected = false;
 
         switch ($this->getType()) {
@@ -511,7 +521,8 @@ class MimeReader {
         return $detected;
     }
 
-    public function getType() {
+    public function getType()
+    {
         if (is_null($this->detected_type)) {
             $this->readResourceHeader();
             $this->detectType();
@@ -520,12 +531,9 @@ class MimeReader {
         return $this->detected_type;
     }
 
-    /**
-     * Helper functions.
-     */
-
     // Loads the first 512 bytes into a member variable
-    protected function readResourceHeader() {
+    private function readResourceHeader()
+    {
         // If it is a string, it is the path to a file.
         // Otherwise, it is a file pointer.
         if (is_string($this->file)) {
@@ -535,9 +543,10 @@ class MimeReader {
         } else {
             // The current position may not be at the start. Let's take it then set to
             //  start of file, read 512 bytes then reset to last position.
-            $position   = ftell($this->file);
+            $position = ftell($this->file);
             fseek($this->file, 0, SEEK_SET);
-            $header     = fread($this->file, 512);
+
+            $header = fread($this->file, 512);
             fseek($this->file, $position, SEEK_SET);
         }
 
@@ -545,31 +554,37 @@ class MimeReader {
     }
 
     // Runs through the classes detecting the MIME type
-    protected function detectType() {
-        if ($this->sniffEmpty())   return;
-        if ($this->sniffImages())  return;
-        if ($this->sniffMedia())   return;
-        if ($this->sniffFonts())   return;
-        if ($this->sniffArchive()) return;
-        if ($this->sniffText())    return;
-        if ($this->sniffHtml())    return;
-        if ($this->sniffOthers())  return;
+    private function detectType()
+    {
+        if ($this->sniffEmpty() ||
+            $this->sniffImages() ||
+            $this->sniffMedia() ||
+            $this->sniffFonts() ||
+            $this->sniffArchive() ||
+            $this->sniffText() ||
+            $this->sniffHtml() ||
+            $this->sniffOthers()
+        ) {
+            return;
+        }
 
         // The MIME type could not be sniffed. Default to octet-stream.
         $this->detected_type = 'application/octet-stream';
     }
 
     // Used to match a non-HTML pattern against the header
-    protected function matchPattern($pattern, $mask, $ignore) {
+    private function matchPattern($pattern, $mask, $ignore)
+    {
         if (empty($pattern) || empty($mask)) {
             return false;
         }
+
         $s = 0;
 
-        $sequence       = &$this->header;
-        $seq_len        = strlen($sequence);
-        $pattern_len    = strlen($pattern);
-        $mask_len       = strlen($mask);
+        $sequence    = &$this->header;
+        $seq_len     = strlen($sequence);
+        $pattern_len = strlen($pattern);
+        $mask_len    = strlen($mask);
 
         if ($pattern_len !== $mask_len) {
             return false;
@@ -579,7 +594,7 @@ class MimeReader {
         if (!empty($ignore)) {
             for ($s = 0; $s < $seq_len;) {
                 // This letter should not be ignored.
-                if (strpos($ignore, $sequence{$s}) === false) {
+                if (strpos($ignore, $sequence[$s]) === false) {
                     break;
                 }
 
@@ -594,13 +609,14 @@ class MimeReader {
 
         // Now we will compare. If it doesn't match the mask, we return false.
         for ($i = 0; $i < $pattern_len;) {
-            $masked_data    = $sequence{$s} & $mask{$i};
+            $masked_data = $sequence[$s] & $mask[$i];
 
-            if ($masked_data !== $pattern{$i}) {
+            if ($masked_data !== $pattern[$i]) {
                 return false;
             }
 
-            ++$i; ++$s;
+            ++$i;
+            ++$s;
         }
 
         // Mask matched. This pattern matches.
@@ -608,27 +624,29 @@ class MimeReader {
     }
 
     // Used to match an HTML pattern against the header
-    protected function htmlMatchPattern($pattern, $mask, $ignore, $trailing) {
+    private function htmlMatchPattern($pattern, $mask, $ignore, $trailing)
+    {
         if (empty($pattern) || empty($mask)) {
             return false;
         }
-        $s  = 0; $i = 0;
 
-        $sequence       = &$this->header;
-        $seq_len        = strlen($sequence);
-        $pattern_len    = strlen($pattern);
-        $mask_len       = strlen($mask);
+        $s = 0;
+        $i = 0;
 
-        if ($pattern_len !== $mask_len) {
-            if (empty($trailing))
-                return false;
+        $sequence    = &$this->header;
+        $seq_len     = strlen($sequence);
+        $pattern_len = strlen($pattern);
+        $mask_len    = strlen($mask);
+
+        if ($pattern_len !== $mask_len && empty($trailing)) {
+            return false;
         }
 
         // First we will set $s so that it ignores the first bytes if it needs to
         if (!empty($ignore)) {
             for (; $s < $seq_len;) {
                 // This letter should not be ignored.
-                if (strpos($ignore, $sequence{$s}) === false) {
+                if (strpos($ignore, $sequence[$s]) === false) {
                     break;
                 }
 
@@ -643,37 +661,38 @@ class MimeReader {
 
         // Now we will compare. If it doesn't match the mask, we return false.
         for (; $i < $pattern_len; $i++, $s++) {
-            $masked_data = $sequence{$s} & $mask{$i};
+            $masked_data = $sequence[$s] & $mask[$i];
 
-            if ($masked_data !== $pattern{$i}) {
+            if ($masked_data !== $pattern[$i]) {
                 return false;
             }
         }
 
         // Mask matched. Let us check for trailing bytes.
         for (; $i < $mask_len; $i++, $s++) {
-            $masked_data = $sequence{$s} & $mask{$i};
+            $masked_data = $sequence[$s] & $mask[$i];
 
-            if (false === strpos($trailing, $masked_data))
+            if (false === strpos($trailing, $masked_data)) {
                 return false;
+            }
         }
 
         return true;
     }
 
-    /**
-     * Sniffer functions
-     */
-    protected function sniffEmpty() {
+    private function sniffEmpty()
+    {
         if (strlen($this->header) === 0) {
             $this->detected_type = 'inode/x-empty';
+
             return true;
         }
 
         return false;
     }
 
-    protected function sniffImages() {
+    private function sniffImages()
+    {
         $num_imgs = count(self::$image);
 
         for ($i = 0; $i < $num_imgs; $i++) {
@@ -681,6 +700,7 @@ class MimeReader {
 
             if ($this->matchPattern($im['pattern'], $im['mask'], $im['ignore'])) {
                 $this->detected_type = $im['mime'];
+
                 return true;
             }
         }
@@ -688,26 +708,31 @@ class MimeReader {
         return false;
     }
 
-    protected function sniffMedia() {
+    private function sniffMedia()
+    {
         $num_media = count(self::$media);
 
         for ($i = 0; $i < $num_media; $i++) {
             $m = &self::$media[$i];
+
             if ($this->matchPattern($m['pattern'], $m['mask'], $m['ignore'])) {
                 $this->detected_type = $m['mime'];
+
                 return true;
             }
         }
 
         if ($this->sniffMp4()) {
             $this->detected_type = 'video/mp4';
+
             return true;
         }
 
         return false;
     }
 
-    protected function sniffMp4() {
+    private function sniffMp4()
+    {
         $sequence = &$this->header;
         $seq_len  = strlen($sequence);
 
@@ -719,23 +744,28 @@ class MimeReader {
         $box_size = unpack('N', $box_size);
         $box_size = $box_size[1];
 
-        if ($seq_len < $box_size)
+        if ($seq_len < $box_size) {
             return false;
+        }
 
-        if ($box_size % 4)
+        if ($box_size % 4) {
             return false;
+        }
 
-
-        if (substr($sequence, 4, 4) !== "\x66\x74\x79\x70")
+        if (substr($sequence, 4, 4) !== "\x66\x74\x79\x70") {
             return false;
+        }
 
-        if (substr($sequence, 8, 3) === "\x6D\x70\x34")
+        if (substr($sequence, 8, 3) === "\x6D\x70\x34") {
             return true;
+        }
 
         $i = 16;
+
         while ($i < $box_size) {
-            if (substr($sequence, $i, 3) === "\x6D\x70\x34")
+            if (substr($sequence, $i, 3) === "\x6D\x70\x34") {
                 return true;
+            }
 
             $i += 4;
         }
@@ -743,13 +773,16 @@ class MimeReader {
         return false;
     }
 
-    protected function sniffFonts() {
+    private function sniffFonts()
+    {
         $num_fonts = count(self::$fonts);
 
         for ($i = 0; $i < $num_fonts; $i++) {
             $f = &self::$fonts[$i];
+
             if ($this->matchPattern($f['pattern'], $f['mask'], $f['ignore'])) {
                 $this->detected_type = $f['mime'];
+
                 return true;
             }
         }
@@ -757,13 +790,16 @@ class MimeReader {
         return false;
     }
 
-    protected function sniffArchive() {
+    private function sniffArchive()
+    {
         $num_archives = count(self::$archive);
 
         for ($i = 0; $i < $num_archives; $i++) {
             $a = &self::$archive[$i];
+
             if ($this->matchPattern($a['pattern'], $a['mask'], $a['ignore'])) {
                 $this->detected_type = $a['mime'];
+
                 return true;
             }
         }
@@ -771,37 +807,46 @@ class MimeReader {
         return false;
     }
 
-    protected function sniffText() {
+    private function sniffText()
+    {
         $num_texts = count(self::$text);
 
         for ($i = 0; $i < $num_texts; $i++) {
             $t = &self::$text[$i];
+
             if ($this->matchPattern($t['pattern'], $t['mask'], $t['ignore'])) {
-                if ($this->hasBinaryData()) {
-                    return false;
-                } else {
+                if (!$this->hasBinaryData()) {
                     $this->detected_type = $t['mime'];
+
                     return true;
                 }
+
+                return false;
             }
         }
 
         return false;
     }
 
-    protected function sniffHtml() {
+    private function sniffHtml()
+    {
         $num_html = count(self::$html);
+
         for ($i = 0; $i < $num_html; $i++) {
             $u = &self::$html[$i];
+
             if ('text/html' === $u['mime']) {
                 $trailing = (array_key_exists('trailing', $u) ? $u['trailing'] : '');
+
                 if ($this->htmlMatchPattern($u['pattern'], $u['mask'], $u['ignore'], $trailing)) {
                     $this->detected_type = 'text/html';
+
                     return true;
                 }
             } else {
                 if ($this->matchPattern($u['pattern'], $u['mask'], $u['ignore'])) {
                     $this->detected_type = $u['mime'];
+
                     return true;
                 }
             }
@@ -810,12 +855,16 @@ class MimeReader {
         return false;
     }
 
-    protected function sniffOthers() {
+    private function sniffOthers()
+    {
         $num_others = count(self::$others);
+
         for ($i = 0; $i < $num_others; $i++) {
             $o = &self::$others[$i];
+
             if ($this->matchPattern($o['pattern'], $o['mask'], $o['ignore'])) {
                 $this->detected_type = $o['mime'];
+
                 return true;
             }
         }
@@ -823,13 +872,16 @@ class MimeReader {
         return false;
     }
 
-    protected function hasBinaryData() {
+    private function hasBinaryData()
+    {
         static $binary_chars;
 
-        if (is_string($binary_chars))
+        if (is_string($binary_chars)) {
             $binary_chars = str_split($this->binary_characters);
+        }
 
         $num_chars = count($binary_chars);
+
         for ($i = 0; $i < $num_chars; $i++) {
             if (strpos($this->header, $binary_chars[$i]) !== false) {
                 return true;
