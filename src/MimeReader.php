@@ -81,6 +81,13 @@ class MimeReader
             'mask'      => "\xFF\xFF\xFF\xFF",
             'ignore'    => self::IGNORE_NOTHING,
         ),
+        // "TIFF/TIF" support
+        array(
+            'mime'      => 'image/tiff',
+            'pattern'   => "\x49\x49\x2A\x00",
+            'mask'      => "\xFF\xFF\xFF\xFF",
+            'ignore'    => self::IGNORE_NOTHING,
+        )
     );
 
     private static $media = array(
@@ -90,6 +97,13 @@ class MimeReader
             'pattern'   => "\x1A\x45\xDF\xA3",
             'mask'      => "\xFF\xFF\xFF\xFF",
             'ignore'    => self::IGNORE_NOTHING,
+        ),
+        // The MOV signature
+        array(
+            'mime'      => 'video/quicktime',
+            'pattern'   => "\x66\x74\x79\x70\x71\x74\x20\x20",
+            'mask'      => "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
+            'ignore'    => ''
         ),
         // The .snd signature
         array(
